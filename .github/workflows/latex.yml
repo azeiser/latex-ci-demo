@@ -26,3 +26,29 @@ jobs:
           name: main-pdf
           path: main.pdf
           retention-days: 7
+  pages:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download built PDF
+        uses: actions/download-artifact@v4
+        with:
+          name: main-pdf
+          path: public
+      - name: Create index.html
+        run: |
+          echo '<!doctype html><meta charset="utf-8"><title>PDF</title><h1>Build</h1><p><a href="main.pdf">main.pdf</a>' > public/index.html
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
